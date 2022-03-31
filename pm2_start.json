@@ -1,5 +1,5 @@
 {
-  "name": "counterBot",
+  "name": "counterBotSoftwareWitchcraft",
   "script": "app.js",
   "autorestart": true,
   "max_restarts": 5,

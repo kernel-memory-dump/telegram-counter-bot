@@ -13,7 +13,7 @@ const helpMsg = `Command reference:
 /start - Start bot (mandatory in groups)
 /inc - Increment default counter
 /inc1 - Increment counter 1
-/incx - Increment counter x (replace x with any number)
+/incx - Increment counter x (replace x with any number or singleWordedString)
 /dec - Decrement counter
 /decx - Decrement counter x
 /reset - Reset counter back to 0
@@ -31,8 +31,7 @@ Tip: You can also use e.g. '/inc2 5' to increase counter two by five counts.`;
 
 const inputErrMsg = `💥 BOOM... 🔩☠🔧🔨⚡️
 Hm, that wasn't supposed to happen. You didn't input invalid characters, did you?
-The usage for this command is \"/set x\", where x is a number.
-At the moment, I can only count integers, if you want to add your own number system, please feel free to do so. Just click here: /about `;
+The usage for this command is \"/set x\", where x is a number or a singleWordedString.`;
 
 const incNMsg = `To use multiple counters, simply put the number of the counter you want to increase directly after the command like so:
 /inc1 <- this will increment counter 1
@@ -42,7 +41,7 @@ This does also work with other commands like /dec1 /reset1 /set1 /get1`;
 const aboutMsg = "This bot was created by @LeoDJ\nSource code and contact information can be found at https://github.com/LeoDJ/telegram-counter-bot";
 
 function getRegExp(command) {
-    return new RegExp("/" + command + "[0-9]*\\b");
+    return new RegExp("/" + command + "[a-zA-Z0-9_]*$");
 }
 
 //get username for group command handling

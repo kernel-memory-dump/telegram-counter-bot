@@ -1,3 +1,9 @@
+# FORKED to customize commands and enable redis as storage (heroku-addon)
+
+Only required env variable is BOT_TOKEN (telegram bot token) 
+Deployed on heroku as a worker + redis addon 
+https://devcenter.heroku.com/articles/redistogo
+
 # Telegram Counter Bot
 This bot aims to be a simple counter bot to keep a counter in a group / private chat.  
 The uses are simply endless.  

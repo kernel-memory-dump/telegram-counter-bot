@@ -40,8 +40,16 @@ This does also work with other commands like /dec1 /reset1 /set1 /get1`;
 
 const aboutMsg = "This bot was created by @LeoDJ\nSource code and contact information can be found at https://github.com/LeoDJ/telegram-counter-bot";
 
+process
+  .on('unhandledRejection', (reason, p) => {
+    console.error(reason, 'Unhandled Rejection at Promise', p);
+  })
+  .on('uncaughtException', err => {
+    console.error(err, 'Uncaught Exception thrown');
+});
+
 function getRegExp(command) {
-    return new RegExp("/" + command + "[a-zA-Z0-9_]*$");
+    return new RegExp("/" + command + "[a-zA-Z0-9_]*");
 }
 
 //get username for group command handling
@@ -49,8 +57,6 @@ bot.telegram.getMe().then((botInfo) => {
     bot.options.username = botInfo.username;
     console.log("Initialized", botInfo.username);
 });
-
-dataService.loadUsers();
 
 function userString(ctx) {
     return JSON.stringify(ctx.from.id == ctx.chat.id ? ctx.from : {
@@ -211,10 +217,9 @@ bot.hears(getRegExp('get'), ctx => {
 bot.hears(getRegExp('set'), ctx => {
     logMsg(ctx);
     currentCommand = 'set';
-    var m = ctx.message.text.match(getRegExp(currentCommand))[0]; //filter command
-    var counterId = m.substring(m.indexOf(currentCommand) + currentCommand.length) || 0; //get id of command, return 0 if not found
-
-    params = ctx.message.text.split(" ");
+    const message = ctx.message.text.substr('/set'.length);
+    const params = message.split(" ");
+    const counterId = params[0];
     if (params.length == 2 && !isNaN(params[1])) {
         var val = Math.floor(params[1]);
         dataService.setCounter(ctx.chat.id, counterId, val);
@@ -229,8 +234,11 @@ bot.hears(getRegExp('set'), ctx => {
 });
 
 
-bot.startPolling();
 
+(async() => {
+    await dataService.initialize();
+    bot.startPolling();
+})();
 
 module.exports = {
 

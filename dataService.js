@@ -1,44 +1,14 @@
-const fs = require('fs');
-const diskusage = require('diskusage');
-var usrFileName = "./users.json";
-
+let redisClient;
 var users = {};
-var fileLocked = false;
+const usersKey = 'users';
 
-function loadUsers() {
-    fs.readFile(usrFileName, (err, data) => {
-        if (err) throw err;
-        users = JSON.parse(data);
-    });
+async function loadUsers() {
+    const usersJSON = await redisClient.get(usersKey);
+    users = usersJSON ? JSON.parse(usersJSON) : {};
 }
 
-async function getFreeMB() {
-    try {
-        const info = await diskusage.check('/');
-        return info.available / 1024 / 1024;
-    }
-    catch (err) {
-        console.error(err);
-        return undefined;
-    }
-}
-
-function saveUsers() {
-	if(!fileLocked){
-        getFreeMB().then(free => {
-            if(free > 100) {
-                fileLocked = true;
-                var json = JSON.stringify(users);
-                fs.writeFile(usrFileName, json, 'utf8', function (err) {
-                    if (err) console.trace(err);
-                    fileLocked = false;
-                });
-            }
-            else {
-                console.log(`Error: can't save user file. Not enough free space left on device (${free} MB)`);
-            }
-        });
-	}
+async function saveUsers() {
+    await redisClient.set(usersKey, JSON.stringify(users));
 }
 
 function registerUser(msg) {
@@ -104,9 +74,14 @@ function assertCounter(uid, id) {
 }
 
 function setCounter(uid, id, val) {
-    assertCounter(uid, id);
-    users[uid].counter[id].value = val;
-    saveUsers();
+    try {
+        assertCounter(uid, id);
+        users[uid].counter[id].value = val;
+        saveUsers();
+    }
+    catch(e) {
+        console.error('setCounter failed for', {uid, id, val});
+    }
 }
 
 function getCounter(uid, id) {
@@ -124,7 +99,15 @@ function getAllCounters(uid) {
     return users[uid].counter;
 }
 
+const initialize = async () => {
+    redisClient = require("redis").createClient({url: process.env.REDISTOGO_URL});
+    redisClient.on('error', (err) => console.log('Redis Client Error', err));
+    await redisClient.connect();  
+    await loadUsers();
+};
+
 module.exports = {
+    initialize,
     loadUsers,
     registerUser,
     getUserList,
